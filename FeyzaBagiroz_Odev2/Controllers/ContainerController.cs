@@ -4,6 +4,7 @@ using Data.UnitOfWork;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -16,21 +17,29 @@ namespace FeyzaBagiroz_Odev2.Controllers
     {
         private readonly IUnitOfWork _unitOfWork;
 
-        private readonly ILogger<WeatherForecastController> _logger;
+        private readonly ILogger<ContainerController> _logger;
 
-        public ContainerController(ILogger<WeatherForecastController> logger, IUnitOfWork unitOfWork)
+        public ContainerController(ILogger<ContainerController> logger, IUnitOfWork unitOfWork)
         {
             _logger = logger;
             _unitOfWork = unitOfWork;
         }
 
-        /* Sistemdeki tüm containerları listeleyen endpoint */ 
+        /* Sistemdeki tüm containerları listeleyen endpoint */
 
         [HttpGet]
         public async Task<IActionResult> GetAllContainers()
         {
-            var containers = await _unitOfWork.Container.GetAll();
-            return Ok(containers);
+            //gelen veriyi jsonResult tipinde geri döndüm.
+            try
+            {
+                var result = await _unitOfWork.Container.GetAll();
+                return new JsonResult(result);
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
         }
 
         /* Sisteme yeni bir container ekleyen endpoint */
@@ -38,10 +47,18 @@ namespace FeyzaBagiroz_Odev2.Controllers
         public async Task<IActionResult> AddContainer([FromBody] Container entity)
         {
 
-            var response = await _unitOfWork.Container.Add(entity);
-            _unitOfWork.Complete();
+            try
+            {
+                var result = await _unitOfWork.Container.Add(entity);
+                _unitOfWork.Complete();
+                return new JsonResult(result);
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
 
-            return Ok();
+
 
         }
 
@@ -53,25 +70,32 @@ namespace FeyzaBagiroz_Odev2.Controllers
         {
             //Burada vehicleId alanının günellenmemesi için bir viewmodel oluşturdum ve parametre olarak bunu gönderdim
             //parametre olarak gönderilen id nin boş olma ve ya sistemde olmama durumu control edildi
-            if (entity != null && entity.Id > 0)
+            try
             {
-                var result = await _unitOfWork.Container.GetById(entity.Id);
-                if (result != null)
+                if (entity != null && entity.Id > 0)
                 {
-                  //ContainerName alanı boş değil ise güncelleme işlemi yapacak
-                  if (!string.IsNullOrWhiteSpace(entity.ContainerName))
-                        result.ContainerName = entity.ContainerName;
+                    var result = await _unitOfWork.Container.GetById(entity.Id);
 
-                    result.Latitude = entity.Latitude;
-                    result.Longitude = entity.Longitude;
+                    if (result.Data != null)
+                    {
+                        //ContainerName alanı boş değil ise güncelleme işlemi yapacak
+                        if (!string.IsNullOrWhiteSpace(entity.ContainerName))
+                            result.Data.ContainerName = entity.ContainerName;
 
-                    var response = await _unitOfWork.Container.Update(result);
-                    _unitOfWork.Complete();
+                        result.Data.Latitude = entity.Latitude;
+                        result.Data.Longitude = entity.Longitude;
 
+                        var response = await _unitOfWork.Container.Update(result.Data);
+                        _unitOfWork.Complete();
 
-                    return Ok();
+                        return new JsonResult(result);
+                    }
+
                 }
-
+            }
+            catch (Exception ex)
+            {
+                return null;
             }
             return NotFound();
         }
@@ -81,28 +105,41 @@ namespace FeyzaBagiroz_Odev2.Controllers
         [HttpDelete]
         public async Task<IActionResult> DeleteContainerById(long id)
         {
-            var response = await _unitOfWork.Container.Delete(id);
-            _unitOfWork.Complete();
-
-            return Ok();
+            try
+            {
+                var result = await _unitOfWork.Container.Delete(id);
+                _unitOfWork.Complete();
+                return new JsonResult(result);
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
 
         }
 
 
-         /* VEHİCLEID İLE İSTEK YAPILDIĞINDA O ARACA AİT TÜM CONTAİNERLARI LİSTELEYEN APİ */
+        /* VEHİCLEID İLE İSTEK YAPILDIĞINDA O ARACA AİT TÜM CONTAİNERLARI LİSTELEYEN APİ */
 
-        //[HttpGet("{id}")]
-        //public async Task<IActionResult> GetAllByVehicleId(long id)
-        //{
-        //    var result =  _unitOfWork.Container.Where(x=>x.VehicleId == id).ToList();
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetAllByVehicleId(long id)
+        {
+            try
+            {
+                var result = _unitOfWork.Container.Where(x => x.VehicleId == id).ToList();
 
-        //    if (result is null)
-        //    {
-        //        return NotFound();
-        //    }
+                if (result is null)
+                {
+                    return NotFound("Bulunamadı");
+                }
+                return new JsonResult(result);
 
-        //    return Ok(result);
-        //}
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
 
 
 
@@ -112,36 +149,33 @@ namespace FeyzaBagiroz_Odev2.Controllers
         [HttpGet("{vehicleId} / {n}")]
         public async Task<IActionResult> GroupByContainer(long vehicleId, int n)
         {
-            var list = new List<List<Container>>();
-            var result = _unitOfWork.Container.Where(x => x.VehicleId == vehicleId).ToList();
-            var elementCount = result.Count / n;
-            var index = 0;
-            for (int i = 0; i < n; i++)
+            try
             {
-                list.Add(result.GetRange(index, elementCount));
-                index += elementCount;
+                var list = new List<List<Container>>();
+                var result = _unitOfWork.Container.Where(x => x.VehicleId == vehicleId).ToList();
+                var elementCount = result.Count / n;
+                var index = 0;
+                for (int i = 0; i < n; i++)
+                {
+                    list.Add(result.GetRange(index, elementCount));
+                    index += elementCount;
+                }
+
+                if (result is null)
+                {
+                    return NotFound();
+                }
+
+                return new JsonResult(result);
+
+            }
+            catch (Exception ex)
+            {
+                return null;
             }
 
-            if (result is null)
-            {
-                return NotFound();
-            }
-
-            return Ok(result);
         }
 
-        //[HttpGet("{id}")]
-        //public async Task<IActionResult> GetById(long id)
-        //{
-        //    var result = await _unitOfWork.Container.GetById(id);
-
-        //    if (result is null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    return Ok(result);
-        //}
 
 
 

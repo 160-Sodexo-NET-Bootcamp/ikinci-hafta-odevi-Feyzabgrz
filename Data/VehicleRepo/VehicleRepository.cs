@@ -1,6 +1,7 @@
 ﻿using Data.Context;
 using Data.DataModel;
 using Data.Generic;
+using Data.Result;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -23,24 +24,23 @@ namespace Data.VehicleRepo
             return base.Where(where);
         }
 
-        public async Task<bool> Add(Vehicle entity)
+        public async Task<Result<Vehicle>> Add(Vehicle entity)
         {
            return await base.Add(entity);
         }
 
-        public async Task<bool> Delete(long id)
+        public async  Task<Result.Result> Delete(long id)
         {
-            var result=  base.Delete(id);
-            return true;
+            return await base.Delete(id);
         }
 
-        public Task<IEnumerable<Vehicle>> GetAll()
+        public Task<Result<List<Vehicle>>> GetAll()
         {
             return base.GetAll();
         }
 
 
-        public Task<bool> Update(Vehicle entity)
+        public Task<Result<Vehicle>> Update(Vehicle entity)
         {
             return base.Update(entity);
         }

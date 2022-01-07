@@ -1,5 +1,6 @@
 ﻿using Data.Context;
 using Data.DataModel;
+using Data.Result;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
@@ -29,28 +30,68 @@ namespace Data.Generic
 
 
 
-        public async Task<bool> Add(T entity)
+        public async Task<Result<T>> Add(T entity)
         {
-            var result = await dbSet.AddAsync(entity);
-            return true;
+
+
+            var result = new Result<T>();
+            try
+            {
+                var model = await dbSet.AddAsync(entity);
+
+                result.Data = entity;
+                result.Success = true;
+            }
+            catch (Exception ex)
+            {
+                result.Success = false;
+                result.Message = ex.Message;
+                throw;
+            }
+            return result;
         }
 
-        //public  Task<IEnumerable<T>> Where(Expression<Func<T, bool>> predicate)
-        //{
-        //    return dbSet.Where(predicate);
-        //}
-
-        public async Task<bool> Delete(long id)
+      
+        public async Task<Result.Result> Delete(long id)
         {
-            var entity  = await dbSet.FindAsync(id);
-            
-            var result = dbSet.Remove(entity);
-            return true;
+            var result = new Result.Result();
+            try
+            {
+                var entity = await dbSet.FindAsync(id);
+                var model = dbSet.Remove(entity);
+
+                result.Success = true;
+            }
+            catch (Exception ex)
+            {
+                result.Success = false;
+                result.Message = ex.Message;
+                throw;
+            }
+            return result;
         }
 
-        public async Task<IEnumerable<T>> GetAll()
+
+        
+        public async Task<Result<List<T>>> GetAll()
         {
-            return await dbSet.ToListAsync();
+            //hata mesajlarını rahat okuyabilmek için result yapısı oluşturdum.
+
+            var result = new  Result<List<T>>();
+            try
+            {
+                var model = await dbSet.ToListAsync();
+
+                result.Data = model;
+                result.Success = true;
+            }
+            catch (Exception ex)
+            {
+                result.Success = false;
+                result.Message = ex.Message;
+                throw;
+            }
+            return result;
         }
 
    
@@ -59,20 +100,52 @@ namespace Data.Generic
             return dbSet.Where(where).AsQueryable();
         }
 
-        public async Task<T> GetById(long id)
+        public async Task<Result<T>> GetById(long id)
         {
-            var model = await dbSet.FindAsync(id);
-            return model;
+            //hata mesajlarını rahat okuyabilmek için result yapısı oluşturdum.
+
+            var result = new Result<T>();
+
+            try
+            {
+                var model = await dbSet.FindAsync(id);
+
+                result.Data = model;
+                result.Success = true;
+            }
+            catch (Exception ex)
+            {
+                result.Success = false;
+                result.Message = ex.Message;
+                throw;
+            }
+            return result;
 
         }
       
 
-        public async Task<bool> Update(T entity)
+        public async Task<Result<T>> Update(T entity)
         {
 
-            var model =  dbSet.Update(entity);
-            return true;
+            //hata mesajlarını rahat okuyabilmek için result yapısı oluşturdum.
+
+            var result = new Result<T>();
+          
+            try
+            {
+                var model = dbSet.Update(entity);
+                result.Data = entity;
+                result.Success = true;
+            }
+            catch (Exception ex)
+            {
+                result.Success = false;
+                result.Message = ex.Message;
+                throw;
+            }
+            return result;
 
         }
+
     }
 }
