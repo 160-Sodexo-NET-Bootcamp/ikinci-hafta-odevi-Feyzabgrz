@@ -1,0 +1,26 @@
+{
+  "Version": 1,
+  "ProjectMap": {
+    "948a218a-ec2e-420f-8342-d547bc4ad7a3": {
+      "ProjectGuid": "948a218a-ec2e-420f-8342-d547bc4ad7a3",
+      "DisplayName": "FeyzaBagiroz_Odev2",
+      "ColorIndex": 0
+    },
+    "4904d757-8295-4e9f-aaac-2e9ea01abf73": {
+      "ProjectGuid": "4904d757-8295-4e9f-aaac-2e9ea01abf73",
+      "DisplayName": "Data",
+      "ColorIndex": 1
+    },
+    "a2fe74e1-b743-11d0-ae1a-00a0c90fffc3": {
+      "ProjectGuid": "a2fe74e1-b743-11d0-ae1a-00a0c90fffc3",
+      "DisplayName": "Miscellaneous Files",
+      "ColorIndex": -1
+    },
+    "e1ecaf9f-0b24-41c4-af87-4d78bb1600e5": {
+      "ProjectGuid": "e1ecaf9f-0b24-41c4-af87-4d78bb1600e5",
+      "DisplayName": "Domain",
+      "ColorIndex": 2
+    }
+  },
+  "NextColorIndex": 3
+}
